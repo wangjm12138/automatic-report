@@ -4,7 +4,7 @@ from docx.shared import Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.styles.styles import Styles
 from docx.shared import RGBColor
-
+###http://officeopenxml.com/WPtableBorders.php
 class Word:
     def __init__(self, Text, Data, loghandle):
         self.Text = Text
