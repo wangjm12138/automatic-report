@@ -1,5 +1,6 @@
 *.py[cod]
 .*.swp
+.log
 build/
 dist/
 __pycache__/
