@@ -1,5 +1,6 @@
 import math
 import threading
+from tqdm import tqdm
 from datetime import datetime, timedelta
 #from Mysqlconn import Mysqlconn
 from api.api_common import api_calls
@@ -42,13 +43,19 @@ class JamaData:
 
         return req
 
+    # def get_features(self, projectId, feature_type_id):
+    #     features = []
+    #     features = self.rest_api.getResource(resource="abstractitems", suffix="", \
+    #         params=None, callback=data_reshape.getFeatures, endless=True)
+    #
+    #     return features
+
     def get_features(self, projectId, feature_type_id):
         features = []
         features = self.rest_api.getResource(resource="abstractitems", suffix="", \
-            params=None, callback=data_reshape.getFeatures, endless=False)
+            params={"project":projectId,"startAt":0,"maxResults":50,"itemType":feature_type_id}, callback=data_reshape.getFeatures, endless=True)
 
         return features
-
     def get_upstreamrelated(self, itemId):
         #### Get all upstream
         upstreamrelated = ""
@@ -75,7 +82,7 @@ class JamaData:
     def get_allrequirements(self, projectId, item_type_id):
         allrequirements = []
         allrequirements = self.rest_api.getResource(resource="abstractitems", suffix="", \
-            params={"project":projectId,"startAt":0,"maxResults":50,"itemType":item_type_id}, callback=data_reshape.getAllRequirements, endless=False)
+            params={"project":projectId,"startAt":0,"maxResults":50,"itemType":item_type_id}, callback=data_reshape.getAllRequirements, endless=True)
 
         return allrequirements
 
@@ -84,11 +91,12 @@ class JamaData:
 
         self.P_allfeatures = self.get_features(self.projectId, feature_type_id)
         self.loghandle.info(self.P_allfeatures)
+        return self.P_allfeatures
 
     def get_futher_information_requirements(self, maindata):
         coveredTeams = ["Industrial Design", "Strategic Alliances", "PM", "PMM"]  # Teams that don't require testcase
         result = maindata
-        for req in result:
+        for req in tqdm(result):
             #req["status"] = self.get_picklistoptions(req["statusId"])
             #req["downstreamcase_parentlist"] = self.get_downstreamcase_parentlist(req["id"])
             defect = []

@@ -117,7 +117,8 @@ class data_reshape:
     def getUpstreamRelationships(cls, raw_datas, rawmeta):
         result = ""
         if len(raw_datas) == 0:
-            print("raw_datas is None")
+            #print("raw_datas is None")
+            pass
         else:
             for item in raw_datas:
                 result += str(item["fromItem"]) + ", "
@@ -128,10 +129,12 @@ class data_reshape:
     def getUpstreamRelated(cls, raw_datas, rawmeta):
         result = []
         if len(raw_datas) == 0:
-            print("raw_datas is None")
+            #print("raw_datas is None")
+            pass
         else:
             for feature in raw_datas:
-            	result.append({"id":feature["id"], "name":feature["fields"]["name"], "documentKey":feature["documentKey"]})
+            	if feature["itemType"] == 89008:
+            		result.append({"id":feature["id"], "name":feature["fields"]["name"], "documentKey":feature["documentKey"]})
         return result
 
     @classmethod
@@ -166,17 +169,20 @@ class data_reshape:
     def getDownstreamRelated(cls, raw_datas, rawmeta):
         result = []
         if len(raw_datas) == 0:
-            print("raw_datas is None")
+            #print("raw_datas is None")
+            pass
         else:
             for TC in raw_datas:
-            	result.append({"id":TC["id"], "name":TC["fields"]["name"], "documentKey":TC["documentKey"]})
+            	if TC["itemType"] == 89011:
+            		result.append({"id":TC["id"], "name":TC["fields"]["name"], "documentKey":TC["documentKey"]})
         return result
 
     @classmethod
     def getDownstreamRelateddefect(cls, raw_datas, rawmeta):
         result = []
         if len(raw_datas) == 0:
-            print("raw_datas is None")
+            #print("raw_datas is None")
+            pass
         else:
             for defect in raw_datas:
             	if "jink_to_jira$89012" in defect["fields"]:
@@ -329,7 +335,8 @@ class data_reshape:
             print("raw_datas is None")
         else:
             for feature in raw_datas:
-                result.append({"id":feature["id"], "name":feature["fields"]["name"], "documentKey":feature["documentKey"], "statusId":feature["fields"]["status"], "status":""})
+                #result.append({"id":feature["id"], "name":feature["fields"]["name"], "documentKey":feature["documentKey"], "statusId":feature["fields"]["status"], "status":""})
+                result.append({"id":feature["id"], "name":feature["fields"]["name"], "documentKey":feature["documentKey"]})
         return result
 
     @classmethod

@@ -142,7 +142,7 @@ class api_calls:
                 url = self.combine(purl, params)
             else:
                 url = purl
-            self.Print(url+":start")
+            #self.Print(url+":start")
             response = self.httpget(url, auth=(self.username, self.password))
             if response is not None:
                 json_response = json.loads(response.text)
@@ -151,7 +151,7 @@ class api_calls:
                     rawdatas = json_response["data"]
                 if "meta" in json_response:
                     rawmeta = json_response["meta"]
-                self.Print(url+":succesful")
+                #self.Print(url+":succesful")
         else:
             while True:
                 url = self.combine(purl, params)

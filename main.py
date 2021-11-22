@@ -13,6 +13,7 @@ from api.api_common import api_calls
 from data_reshape import data_reshape
 
 from jama_feature import JamaData
+from data_cleaning import ETL
 from utils import MyLogger,MyConfigParser
 
 def read_config_file():
@@ -80,15 +81,19 @@ if __name__ == "__main__":
     LOGGER_MAIN_HANDLE.info(G_parameter)
 
     rest_api = api_calls(G_parameter = G_parameter, loghandle = LOGGER_MAIN_HANDLE)
-    #jama_itemtypes = rest_api.getResource(resource="itemtypes", suffix="", params={"startAt":0,"maxResults":50}, \
-    #                                          callback=data_reshape.getItemTypes_reshape, endless=True)
+    jama_itemtypes = rest_api.getResource(resource="itemtypes", suffix="", params={"startAt":0,"maxResults":50}, \
+                                              callback=data_reshape.getItemTypes_reshape, endless=True)
 
     project = 20393
-    #print(jama_itemtypes)
-    #jamadata = JamaData(project, jama_itemtypes, G_parameter, LOGGER_MAIN_HANDLE)
-    ##jamadata.Get_allfeatuers()
-    #Pre_data = jamadata.Get_allrequirements()
+    print(jama_itemtypes)
+    jamadata = JamaData(project, jama_itemtypes, G_parameter, LOGGER_MAIN_HANDLE)
+    allfeatures = jamadata.Get_allfeatuers()
+    allrequirements = jamadata.Get_allrequirements()
+    etl = ETL(allfeatures, allrequirements, project)
+    feature_defect, defect_feature = etl.ETL_output()
+    #LOGGER_MAIN_HANDLE.info(feature_defect)
+    #LOGGER_MAIN_HANDLE.info(defect_feature)
 
-    word = Word(Text, None, LOGGER_MAIN_HANDLE)
+    word = Word(Text, feature_defect, defect_feature, LOGGER_MAIN_HANDLE)
     word.generate_word()
     word.save()
