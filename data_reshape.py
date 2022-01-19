@@ -126,6 +126,18 @@ class data_reshape:
         return result
 
     @classmethod
+    def getUpstreamRelated_req(cls, raw_datas, rawmeta):
+        result = []
+        if len(raw_datas) == 0:
+            #print("raw_datas is None")
+            pass
+        else:
+            for feature in raw_datas:
+            	if feature["itemType"] == 89008:
+            		result.append({"id":feature["id"], "name":feature["fields"]["name"], "documentKey":feature["documentKey"]})
+        return result
+
+    @classmethod
     def getUpstreamRelated(cls, raw_datas, rawmeta):
         result = []
         if len(raw_datas) == 0:

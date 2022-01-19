@@ -1,3 +1,4 @@
+import re
 import math
 import threading
 from tqdm import tqdm
@@ -8,17 +9,21 @@ from api.api_common import api_calls
 
 from utils import MyLogger,MyConfigParser
 from data_reshape import data_reshape
-#from concurrent.futures import ThreadPoolExecutor,as_completed
+from concurrent.futures import ThreadPoolExecutor,as_completed
 
 
 
 class JamaData:
-    def __init__(self, projectId, jama_itemtypes, G_parameter, loghandle):
+    def __init__(self, projectId, jama_itemtypes, G_parameter, loghandle, pinumber, hardware):
         self.projectId = projectId
         self.loghandle = loghandle
+        self.pinumber = pinumber
+        self.hardware = hardware
         self.G_parameter = G_parameter
         self.jama_itemtypes = jama_itemtypes
+        self.Max_threads = G_parameter['General']["Max_threads"]
 
+        self.Test_all = {}
         self.P_allfeatures  = []
         self.P_allrequirements, self.P_reqcovered = [], {}
         self.rest_api = api_calls(G_parameter = self.G_parameter, loghandle = self.loghandle)
@@ -49,6 +54,34 @@ class JamaData:
     #         params=None, callback=data_reshape.getFeatures, endless=True)
     #
     #     return features
+    def get_testplans(self, projectId):
+        existing_testplans = {}
+        existing_testplans = self.rest_api.getResource(resource="testplans", suffix="", \
+            params={"project":projectId,"startAt":0,"maxResults":50}, callback=data_reshape.getTestPlans, endless=True)
+        return existing_testplans
+
+    def get_testgroups(self, testplanId):
+        testgroups = {}
+        testgroups = self.rest_api.getResource(resource="testplans", suffix="/%s/testgroups"%(testplanId), \
+                params={"startAt":0,"maxResults":50}, callback=data_reshape.getTestGroups, endless=True)
+        return testgroups
+
+    def get_testcases(self, testplanId, testgroups):
+        #### Get all test plan testcases
+        testcases = {}
+        with ThreadPoolExecutor(max_workers=int(self.Max_threads)) as executor:
+            obj_list = []
+            for testgroup in testgroups:
+                #obj = executor.submit(self.rest_api.NewgetTestCases,"testplans",testplanId, testgroup, \
+                #    params={"startAt":0,"maxResults":50}, endless=True, callback=data_reshape.getTestCases)
+                obj = executor.submit(self.rest_api.getResource,resource="testplans", suffix="/%s/testgroups/%s/testcases"%(testplanId, testgroup), \
+                        params={"startAt":0,"maxResults":50}, endless=True,callback=data_reshape.getTestCases)
+                obj_list.append(obj)
+
+            for future in as_completed(obj_list):
+                result = future.result()
+                testcases.update(result)
+        return testcases
 
     def get_features(self, projectId, feature_type_id):
         features = []
@@ -56,13 +89,19 @@ class JamaData:
             params={"project":projectId,"startAt":0,"maxResults":50,"itemType":feature_type_id}, callback=data_reshape.getFeatures, endless=True)
 
         return features
+    def get_upstreamrelated_req(self, itemId):
+        #### Get all upstream
+        upstreamrelated = ""
+        upstreamrelated = self.rest_api.getResource(resource="items", suffix="/%s/upstreamrelated"%(itemId), \
+            params=None, callback=data_reshape.getUpstreamRelated_req)
+
+        return upstreamrelated
+
     def get_upstreamrelated(self, itemId):
         #### Get all upstream
         upstreamrelated = ""
         upstreamrelated = self.rest_api.getResource(resource="items", suffix="/%s/upstreamrelated"%(itemId), \
             params=None, callback=data_reshape.getUpstreamRelated)
-
-        return upstreamrelated
 
     def get_downstreamrelated(self, itemId):
         #### Get all upstream
@@ -121,3 +160,36 @@ class JamaData:
         self.loghandle.info(self.P_allrequirements)
 
         return self.P_allrequirements
+
+    def get_testcases_information_requirements(self, testcases):
+        feature = []
+        req = []
+        for testcase_item in testcases:
+            reqs = self.get_upstreamrelated_req(testcase_item["id"])
+            for req_item in reqs:
+
+
+
+    def Get_PItestplan(self):
+
+        self.loghandle.info("Get project id:%s all testplans"%(self.projectId))
+        existing_testplans = self.get_testplans(self.projectId)
+        #print(existing_testplans)
+        for testplanId in existing_testplans:
+            test_plan_name = existing_testplans[testplanId]["name"]
+            if self.projectId == "20393":
+                pattern1 = re.compile(self.pinumber)
+                pattern2 = re.compile(self.hardware)
+                m1 = pattern1.search(test_plan_name)
+                m2 = pattern2.search(test_plan_name)
+                if m1 and m2:
+                    print(testplanId)
+                    self.Test_all["testplan"] = existing_testplans
+                    testgroups = self.get_testgroups(testplanId)
+                    #testruns = self.get_testruns(testplanId)
+                    testcases = self.get_testcases(testplanId, testgroups)
+                    self.Test_all["testplan"] = existing_testplans
+                    #self.Test_all["testruns"] = testruns
+                    self.Test_all["testcase"] = testcases
+        self.testcases_feature = self.get_testcases_information_requirements(self.Test_all["testcases"])
+        print(self.Test_all)

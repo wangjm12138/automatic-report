@@ -5,6 +5,7 @@ import pdb
 import time
 import json
 import timeit
+import argparse
 import traceback
 
 from word import Word
@@ -16,6 +17,18 @@ from jama_feature import JamaData
 from data_cleaning import ETL
 from utils import MyLogger,MyConfigParser
 
+namespace = {}
+b="fdsfas"
+parser = argparse.ArgumentParser(add_help=False)
+parser.add_argument('-p','--projectid')
+parser.add_argument('-n','--pinumber')
+parser.add_argument('-h','--hardware')
+namespace =vars(parser.parse_args())
+
+#print(namespace)
+#a=vars(namespace)
+#print(a)
+#pdb.set_trace()
 def read_config_file():
     """
         Discription:
@@ -84,16 +97,19 @@ if __name__ == "__main__":
     jama_itemtypes = rest_api.getResource(resource="itemtypes", suffix="", params={"startAt":0,"maxResults":50}, \
                                               callback=data_reshape.getItemTypes_reshape, endless=True)
 
-    project = 20393
-    print(jama_itemtypes)
-    jamadata = JamaData(project, jama_itemtypes, G_parameter, LOGGER_MAIN_HANDLE)
-    allfeatures = jamadata.Get_allfeatuers()
-    allrequirements = jamadata.Get_allrequirements()
-    etl = ETL(allfeatures, allrequirements, project)
-    feature_defect, defect_feature = etl.ETL_output()
-    #LOGGER_MAIN_HANDLE.info(feature_defect)
-    #LOGGER_MAIN_HANDLE.info(defect_feature)
+    project = namespace["projectid"]
 
-    word = Word(Text, feature_defect, defect_feature, LOGGER_MAIN_HANDLE)
-    word.generate_word()
-    word.save()
+    print(jama_itemtypes)
+    jamadata = JamaData(project, jama_itemtypes, G_parameter, LOGGER_MAIN_HANDLE, namespace['pinumber'], namespace['hardware'])
+    jamadata.Get_PItestplan()
+    #allfeatures = jamadata.Get_allfeatuers()
+    #allrequirements = jamadata.Get_allrequirements()
+
+
+    #etl = ETL(allfeatures, allrequirements, project)
+    #feature_defect, defect_feature = etl.ETL_output()
+
+
+    #word = Word(Text, feature_defect, defect_feature, LOGGER_MAIN_HANDLE)
+    #word.generate_word()
+    #word.save()
