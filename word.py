@@ -113,6 +113,8 @@ class Word:
             cell = table.cell(index, 1)
             p = cell.add_paragraph(d_v["defect_name"])
             cell = table.cell(index, 2)
+            p = cell.add_paragraph(d_v["priority"])
+            cell = table.cell(index, 3)
             for f_k, f_v in d_v["featurelist"].items():
                 #cell = table.cell(index, 2)
                 p = cell.add_paragraph()
@@ -244,6 +246,8 @@ class Word:
         cell = table.cell(0,1)
         cell.text = "Name"
         cell = table.cell(0,2)
+        cell.text = "Severity"
+        cell = table.cell(0,3)
         cell.text = "Affected Feature"
         self.defect_feature_content(table)
 
